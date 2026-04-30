@@ -357,7 +357,13 @@ require("lazy").setup({
           local opts = { buffer = bufnr, remap = false }
 
           vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts)
-          vim.keymap.set("n", "K", vim.lsp.buf.hover, opts)
+          vim.keymap.set("n", "K", function()
+            if client and client.name == "rust-analyzer" then
+              vim.cmd.RustLsp({ "hover", "actions" })
+            else
+              vim.lsp.buf.hover()
+            end
+          end, opts)
           vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts)
           vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts)
           vim.keymap.set("n", "gr", vim.lsp.buf.references, opts)
@@ -829,6 +835,12 @@ require("lazy").setup({
                 loadOutDirsFromCheck = true,
                 runBuildScripts = true,
               },
+              hover = {
+                actions = {
+                  enable = true,
+                  references = true,
+                },
+              },
             },
           },
         },
@@ -946,7 +958,16 @@ vim.keymap.set("n", "<C-s>", ":w<CR>", { silent = true })
 vim.keymap.set("n", "<C-a>", "ggVG", { desc = "Select all" })
 vim.keymap.set("v", "<C-c>", '"+y', { desc = "Copy to clipboard" })
 vim.keymap.set("n", "<C-q>", ":q<CR>", { silent = true })
-vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
+vim.keymap.set("n", "<Esc>", function()
+  vim.cmd("nohlsearch")
+  -- Close any floating windows (like LSP hover)
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    local config = vim.api.nvim_win_get_config(win)
+    if config.relative ~= "" then
+      vim.api.nvim_win_close(win, false)
+    end
+  end
+end, { desc = "Clear highlights and close floating windows" })
 vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc = "Save" })
 vim.keymap.set("n", "<leader>q", "<cmd>q<CR>", { desc = "Quit" })
 vim.keymap.set("n", "<leader>Q", "<cmd>qa!<CR>", { desc = "Force quit all" })
@@ -1144,6 +1165,17 @@ vim.api.nvim_create_autocmd({ "BufNewFile", "BufRead" }, {
 -- Keymap to go to file under cursor
 vim.keymap.set("n", "gf", "gf", { desc = "Go to file under cursor" })
 vim.keymap.set("n", "<leader>gf", "<C-w>f", { desc = "Go to file in new split" })
+
+-- Close floating windows with <Esc> if they are focused
+vim.api.nvim_create_autocmd("WinEnter", {
+  callback = function()
+    local win = vim.api.nvim_get_current_win()
+    local config = vim.api.nvim_win_get_config(win)
+    if config.relative ~= "" then
+      vim.keymap.set("n", "<Esc>", "<cmd>close<CR>", { buffer = true, silent = true })
+    end
+  end,
+})
 
 -- Convenient keymap to close the current buffer
 vim.keymap.set("n", "<leader>x", "<cmd>bd<cr>", { desc = "Close current buffer" })
