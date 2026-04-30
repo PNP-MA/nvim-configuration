@@ -958,12 +958,19 @@ vim.keymap.set("n", "<C-s>", ":w<CR>", { silent = true })
 vim.keymap.set("n", "<C-a>", "ggVG", { desc = "Select all" })
 vim.keymap.set("v", "<C-c>", '"+y', { desc = "Copy to clipboard" })
 vim.keymap.set("n", "<C-q>", ":q<CR>", { silent = true })
-vim.keymap.set("n", "<Esc>", function()
+vim.keymap.set({ "n", "i" }, "<Esc>", function()
+  -- If in Insert mode, exit to Normal mode
+  if vim.api.nvim_get_mode().mode == "i" then
+    vim.cmd("stopinsert")
+  end
+
   vim.cmd("nohlsearch")
-  -- Save the file if modified
-  if vim.bo.modified and vim.bo.buftype == "" then
+
+  -- Save if the buffer is a normal file and has been modified
+  if vim.bo.buftype == "" and vim.bo.modified and vim.fn.expand("%") ~= "" then
     vim.cmd("silent! update")
   end
+
   -- Close any floating windows (like LSP hover)
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     local config = vim.api.nvim_win_get_config(win)
