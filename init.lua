@@ -43,7 +43,11 @@ vim.opt.suffixesadd:append({ ".lua", ".js", ".ts", ".jsx", ".tsx", ".php", ".py"
 vim.env.PATH = vim.fn.stdpath("data") .. "/mason/bin" .. ":" .. vim.fn.expand("~/.bun/bin") .. ":" .. vim.fn.expand("~/.cargo/bin") .. ":" .. vim.env.PATH
 
 -- Fix for shell commands (like !ls) not working correctly
-vim.opt.shell = "/bin/zsh" -- Or /bin/bash if preferred
+if vim.fn.executable("zsh") == 1 then
+  vim.opt.shell = "zsh"
+elseif vim.fn.executable("bash") == 1 then
+  vim.opt.shell = "bash"
+end
 
 -- 2. Bootstrap lazy.nvim
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
@@ -644,7 +648,7 @@ require("lazy").setup({
       },
       formatters = {
         stylua = {
-          prepend_args = { "--config-path", vim.fn.expand("~/.config/nvim/.stylua.toml") },
+          prepend_args = { "--config-path", vim.fn.stdpath("config") .. "/.stylua.toml" },
         },
       },
       format_on_save = function(bufnr)
@@ -857,9 +861,6 @@ require("lazy").setup({
       { "<leader>lm", "<cmd>Laravel related<cr>", desc = "Laravel Related" },
     },
     ft = { "php", "blade" },
-    cond = function()
-      return vim.fn.filereadable("artisan") == 1
-    end,
     opts = {
       lsp_server = "intelephense",
       features = {
@@ -868,7 +869,11 @@ require("lazy").setup({
         },
       },
     },
-    config = true,
+    config = function(_, opts)
+      if vim.fn.filereadable("artisan") == 1 then
+        require("laravel").setup(opts)
+      end
+    end,
   },
 
   {

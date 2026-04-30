@@ -128,3 +128,8 @@ If you see warnings in `:checkhealth`, you may need to install these external de
 ### Notes on Providers:
 Node.js, Python, and Ruby providers are currently **disabled** in `init.lua` to prevent startup warnings since they require additional global packages (like `npm install -g neovim`). If you need them, re-enable them in `init.lua`.
 
+### Known Issues & Fixes:
+- **Mason Installation Failures:** If Node-based LSPs (like `vtsls`, `pyright`, `eslint_d`) fail to install, check your `~/.npmrc`. Ensure there are no invalid paths or malformed configurations (e.g., `init-module`).
+- **Cross-Platform Support:** The configuration now includes dynamic shell detection and uses standard configuration paths, making it fully compatible with both **Linux** and **macOS**.
+- **Broken Mason Symlinks:** If you encounter `already linked` errors during Mason installation, clean up broken symlinks in `~/.local/share/nvim/mason/bin/`.
+
