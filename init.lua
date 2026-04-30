@@ -960,6 +960,10 @@ vim.keymap.set("v", "<C-c>", '"+y', { desc = "Copy to clipboard" })
 vim.keymap.set("n", "<C-q>", ":q<CR>", { silent = true })
 vim.keymap.set("n", "<Esc>", function()
   vim.cmd("nohlsearch")
+  -- Save the file if modified
+  if vim.bo.modified and vim.bo.buftype == "" then
+    vim.cmd("silent! update")
+  end
   -- Close any floating windows (like LSP hover)
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     local config = vim.api.nvim_win_get_config(win)
@@ -967,7 +971,7 @@ vim.keymap.set("n", "<Esc>", function()
       vim.api.nvim_win_close(win, false)
     end
   end
-end, { desc = "Clear highlights and close floating windows" })
+end, { desc = "Clear highlights, save, and close floating windows" })
 vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc = "Save" })
 vim.keymap.set("n", "<leader>q", "<cmd>q<CR>", { desc = "Quit" })
 vim.keymap.set("n", "<leader>Q", "<cmd>qa!<CR>", { desc = "Force quit all" })
