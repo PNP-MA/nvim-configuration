@@ -39,8 +39,8 @@ vim.opt.listchars = { tab = "» ", trail = "·", nbsp = "␣" }
 vim.opt.path:append({ "**" }) -- Search recursively in subdirectories
 vim.opt.suffixesadd:append({ ".lua", ".js", ".ts", ".jsx", ".tsx", ".php", ".py", ".go" })
 
--- Add Mason, Bun, and Rust bin to PATH
-vim.env.PATH = vim.fn.stdpath("data") .. "/mason/bin" .. ":" .. vim.fn.expand("~/.bun/bin") .. ":" .. vim.fn.expand("~/.cargo/bin") .. ":" .. vim.env.PATH
+-- Add tool binaries to PATH
+vim.env.PATH = vim.fn.stdpath("data") .. "/mason/bin" .. ":" .. vim.fn.expand("~/.bun/bin") .. ":" .. vim.fn.expand("~/.cargo/bin") .. ":" .. vim.fn.expand("~/.local/bin") .. ":" .. vim.fn.expand("~/go/bin") .. ":" .. vim.fn.expand("~/.config/composer/vendor/bin") .. ":" .. vim.env.PATH
 
 -- Fix for shell commands (like !ls) not working correctly
 if vim.fn.executable("zsh") == 1 then
@@ -314,7 +314,7 @@ require("lazy").setup({
     opts = {
       ensure_installed = {
         -- LSP
-        "lua_ls", "pyright", "rust-analyzer", "gopls", "vtsls",
+        "lua_ls", "rust-analyzer", "vtsls",
         "html", "cssls", "jsonls", "yamlls", "bashls", "clangd",
         "intelephense", "emmet_ls",
         -- Linters
@@ -331,7 +331,7 @@ require("lazy").setup({
     dependencies = { "williamboman/mason.nvim" },
     opts = {
       ensure_installed = {
-        "lua_ls", "pyright", "gopls", "vtsls",
+        "lua_ls", "vtsls",
         "html", "cssls", "jsonls", "yamlls", "bashls", "clangd",
         "intelephense",
       },
@@ -382,7 +382,7 @@ require("lazy").setup({
 
       -- Setup servers using the new vim.lsp.config API (Neovim 0.11+)
       local servers = {
-        "lua_ls", "pyright", "gopls", "vtsls",
+        "lua_ls", "basedpyright", "rust_analyzer", "gopls", "vtsls",
         "html", "cssls", "jsonls", "yamlls", "bashls", "clangd",
         "intelephense", "emmet_ls",
       }
@@ -409,7 +409,7 @@ require("lazy").setup({
               hint = { enable = true },
             },
           }
-        elseif server_name == "pyright" then
+        elseif server_name == "basedpyright" then
           server_opts.settings = {
             python = {
               analysis = {
@@ -480,6 +480,22 @@ require("lazy").setup({
                 completion = {
                   enableServerSideFuzzyMatch = true,
                 },
+              },
+            },
+          }
+        elseif server_name == "rust_analyzer" then
+          server_opts.settings = {
+            ["rust-analyzer"] = {
+              checkOnSave = true,
+              check = { command = "clippy" },
+              procMacro = { enable = true },
+              cargo = {
+                allFeatures = true,
+                loadOutDirsFromCheck = true,
+                runBuildScripts = true,
+              },
+              hover = {
+                actions = { enable = true, references = true },
               },
             },
           }
@@ -814,39 +830,7 @@ require("lazy").setup({
     end,
   },
 
-  -- Rust Support
-  {
-    "mrcjkb/rustaceanvim",
-    lazy = false, -- This plugin is already lazy
-    config = function()
-      vim.g.rustaceanvim = {
-        server = {
-          default_settings = {
-            ["rust-analyzer"] = {
-              checkOnSave = true,
-              check = {
-                command = "clippy",
-              },
-              procMacro = {
-                enable = true,
-              },
-              cargo = {
-                allFeatures = true,
-                loadOutDirsFromCheck = true,
-                runBuildScripts = true,
-              },
-              hover = {
-                actions = {
-                  enable = true,
-                  references = true,
-                },
-              },
-            },
-          },
-        },
-      }
-    end,
-  },
+  -- Rust support is handled by rust_analyzer via lspconfig (see servers list)
 
   {
     "Saecki/crates.nvim",
